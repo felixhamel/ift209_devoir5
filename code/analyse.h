@@ -16,7 +16,7 @@ using namespace std;
     Chaque represente soit une operation, soit un operande.
     Le champ "type" sert a les distinguer. Les noeuds de type
     operateur ont toujours des enfants, une branche de gauche
-    et une branche de droite, chaque operande.  Un operande seul (nombre) n'a jamais d'enfants, 
+    et une branche de droite, chaque operande.  Un operande seul (nombre) n'a jamais d'enfants,
     les pointeurs gauche et droite sont donc toujours a NULL dans ce cas.
 
     Le champ "valeur" est un numero d'operation (0 = +, 1 = -, 2 = *, 3 = /) pour les noeuds
@@ -27,10 +27,10 @@ struct Noeud
  int type;
  int valeur;
  Noeud* gauche;
- Noeud* droite; 
+ Noeud* droite;
 };
 
-/* 
+/*
     Fonction qui convertit une chaine de caracteres qui contient une expression en notation infixee
     en une expression en notation polonaise inverse, qui est plus facile a convertir a son tour en
     un arbre syntaxique.
@@ -38,7 +38,7 @@ struct Noeud
     Entrees: 1 - chaine de caractere originale (infixee)
              2 - chaine de caractere resultante (polonaise inverse)
 	         3 - longueur des chaines (la chaine resultante doit pouvoir accommoder 2x plus de caracteres)
-*/	 
+*/
 void shuntingYard(char *,char*, int);
 
 /*
