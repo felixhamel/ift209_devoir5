@@ -6,7 +6,6 @@ Devoir 5 du cours IFT 209
 Équipe 
 ----
  - Félix Hamel
- - Alexandre Blais
 
 
 License
