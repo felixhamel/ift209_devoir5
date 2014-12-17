@@ -80,6 +80,10 @@ int main()
   char* codeCompile = new char[equation.length()*4+2];
   int nombreOctetsCodeCompile = compile(noeud, codeCompile);
 
+  for(int i = 0; i < nombreOctetsCodeCompile; ++i) {
+    printf("%x\n", codeCompile[i]);
+  }
+
   // WRITE
   codeCompile[nombreOctetsCodeCompile] = (4 << 3) + (1 << 0);
   nombreOctetsCodeCompile++;
@@ -88,6 +92,7 @@ int main()
   codeCompile[nombreOctetsCodeCompile] = 0;
   nombreOctetsCodeCompile++;
 
+  // Afficher le nombre d'octets que prends le code compile
   cout << nombreOctetsCodeCompile << endl;
 
   // Afficher le contenu du code compile en Hexa

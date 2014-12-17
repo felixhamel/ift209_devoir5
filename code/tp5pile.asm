@@ -12,10 +12,11 @@
 .section ".text"
 
 compile:
-  save    %sp,-96,%sp
+  save    %sp,-128,%sp
 
   /* Initialisation */
   mov     %i1, %g2
+  mov     0, %l4     ! Taille du code genere
 
   /* Lancer la compilation */
   mov     %i0,%o0
@@ -35,7 +36,7 @@ compile:
   %l2 = adresse du noeud a gauche
   %l3 = adresse du noeud a droite
   %l4 = Taille du code generer
-  %l5 = Inconnu
+  %l5 = Creer instruction
   %l6 = Temporaire
 
   %g2 = Emplacement dans le tableau de char
@@ -51,10 +52,10 @@ compile:
 */
 
 compileRec:
-  save  %sp,-96,%sp
-
-  /* Initialisation */
-  mov   0, %l4                  ! Taille du code genere
+  /* %o -> %i (0-1) */
+  mov   %o0, %i0
+  mov   %o1, %i1
+  mov   %o7, %i7
 
   /* Si jamais il n'y a pas de noeud, on ne va pas le lire */
   tst   %i0
@@ -68,14 +69,14 @@ compileRec:
   ld  [%i0+12], %l3           ! Adresse du noeud de droite
 
   /* DEBUG */
-  /*set   noeud, %o0
+  set   noeud, %o0
   mov   %i0, %o1
   mov   %l0, %o2
   mov   %l1, %o3
   mov   %l2, %o4
   mov   %l3, %o5
   call  printf
-  nop*/
+  nop
 
   set   compileSwitch, %l6      ! Choisir quel operation faire
   umul  %l0, 4, %l7             ! Adresse
@@ -90,6 +91,14 @@ compileSwitch:
 
 /* compiler le noeud si celui-ci est un nombre */
 compileNombre:
+
+  /* DEBUG */
+  set   numero, %o0
+  mov   %l1, %o1
+  mov   %i0, %o2
+  call  printf
+  nop
+
   /* Format de l'instruction */
   mov   1, %l5              ! Format 01
   sll   %l5, 6, %l5
@@ -109,17 +118,44 @@ compileNombre:
   inc   3, %l4                ! + 3 octets
   inc   3, %g2                ! Emplacement dans le tableau de chars
 
-  /* DEBUG */
-  /*set   numero, %o0
-  mov   %l1, %o1
-  call  printf
-  nop*/
-
   ba    compileRecFin
   nop
 
 /* compiler le noeud si celui-ci est un operateur */
 compileOperateur:
+
+  /* DEBUG */
+  set   operateur, %o0
+  mov   %l1, %o1
+  mov   %i7, %o2
+  call  printf
+  nop
+
+  /* Conserver certaines informations */
+  dec   4, %sp
+  st    %o7, [%sp]
+  dec   4, %sp
+  st    %i7, [%sp]
+  dec   4, %sp
+  st    %i1, [%sp]
+  dec   4, %sp
+  st    %l3, [%sp]
+
+  ld    [%sp], %l3
+  inc   4, %sp
+  ld    [%sp], %i1
+  inc   4, %sp
+
+  /* DEBUG i7 (o7) */
+  set   debug, %o0
+  mov   %sp, %o1
+  mov   %l3, %o2
+  mov   %i1, %o3
+  mov   %o7, %o4
+  mov   %i7, %o5
+  call  printf
+  nop
+
   /* compiler le noeud de gauche */
   mov   %l2, %o0
   mov   %i1, %o1
@@ -128,6 +164,19 @@ compileOperateur:
 
   add   %o0, %l4, %l4         ! Concerver le taille du code genere
 
+  /* Recuperer certaines informations */
+  ld    [%sp], %l3
+  inc   4, %sp
+  ld    [%sp], %i1
+  inc   4, %sp
+
+  set   debug2, %o0
+  mov   %l3, %o1
+  mov   %i1, %o2
+  mov   %sp, %o3
+  call  printf
+  nop
+
   /* compiler le noeud de droite */
   mov   %l3, %o0
   mov   %i1, %o1
@@ -135,6 +184,22 @@ compileOperateur:
   nop
 
   add   %o0, %l4, %l4         ! Concerver le taille du code genere
+
+  /* Recuperer certaines informations */
+  ld    [%sp], %i7
+  inc   4, %sp
+  ld    [%sp], %o7
+  inc   4, %sp
+
+  /* DEBUG i7 (o7) */
+  set   debug, %o0
+  mov   %sp, %o1
+  mov   %l3, %o2
+  mov   %i1, %o3
+  mov   %i7, %o4
+  mov   %o7, %o5
+  call  printf
+  nop
 
   /* Ajouter l'instruction de l'operateur */
   mov   2, %l5
@@ -148,12 +213,6 @@ compileOperateur:
   inc   1, %l4
   inc   1, %g2
 
-  /* DEBUG */
-  /*set   operateur, %o0
-  mov   %l1, %o1
-  call  printf
-  nop*/
-
   ba    compileRecFin
   nop
 
@@ -166,23 +225,27 @@ compileVariable:
 
 
 compileRecFin:
-  /*set   suivi, %o0
+  set   suivi, %o0
   mov   %l4, %o1
   mov   %g2, %o2
+  mov   %i7, %o3
   call  printf
-  nop*/
+  nop
 
-  mov   %l4, %i0  ! Retour
+  mov   %l4, %o0  ! Retour
+  mov   %i7, %o7
 
-  ret
-  restore
-
+  retl
+  nop
 
 .section ".rodata"
   .align  4
 
-operateur:  .asciz "Compilation operateur : %d\n"
-numero:     .asciz "Compilation numero %d\n"
-suivi:      .asciz "Taille code : %d  POS : %d\n"
+operateur:  .asciz "Compilation operateur : %d | i7 = %x\n"
+numero:     .asciz "Compilation numero %d - Adresse : %d\n"
+suivi:      .asciz "Taille code : %d  POS : %d | i7 = %x\n"
 noeud:      .asciz "Noeud: %d, Type: %d, Valeur: %d, Gauche: %d, Droite: %d\n"
 variable:   .asciz "Variable...\n"
+addsortie:  .asciz "i7 = %x\n"
+debug:      .asciz "sp = %x | l3 = %d | i1 = %d | o7 = %x | i7 = %x\n"
+debug2:     .asciz "l3 = %x | i1 = %x | sp = %x \n"
